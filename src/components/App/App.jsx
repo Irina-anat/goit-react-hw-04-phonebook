@@ -1,14 +1,90 @@
-import React from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import css from './App.module.css'
 import { nanoid } from "nanoid";
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-
 import  ContactForm  from 'components/ContactForm/ContactForm';
 import ContactList from 'components/ContactList/ContactList';
 import Filter from 'components/Filter/Filter';
 
 
-export class App extends React.Component {
+const App = () => {
+  const [contacts, setContacts] = useState(() => {
+    const storedContacts = localStorage.getItem('contacts');
+    return storedContacts ? JSON.parse(storedContacts) : [];
+  });
+  const [filter, setFilter] = useState('');
+
+  const addContact = ({ name, number }) => {
+    const contact = {
+      id: nanoid(),
+      name,
+      number,
+    };
+
+    const lowerCaseName = name.toLowerCase();
+
+    const isContactExist = contacts.some(
+      (contact) =>
+        (contact.name.toLowerCase() === lowerCaseName && contact.number === number) ||
+        contact.number === number ||
+        contact.name.toLowerCase() === lowerCaseName
+    );
+
+    isContactExist
+      ? Notify.warning(`Contact with that ${name} or ${number} is already present in the phone book.`)
+      : setContacts((prevContacts) => [contact, ...prevContacts]);
+  };
+
+  const deleteContact = (contactId) => {
+    setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== contactId));
+  };
+
+  const changeFilter = (event) => {
+    setFilter(event.currentTarget.value);
+  };
+
+  const visibleContacts = useMemo(
+    () =>
+      contacts.filter((contact) =>
+        contact.name.toLowerCase().includes(filter.toLowerCase())
+      ),
+    [contacts, filter]
+  );
+
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
+
+  return (
+    <div className={css.container__phonebook}>
+      <h1>Телефонна книга</h1>
+      <ContactForm onSubmit={addContact} />
+      <h2>Контакти</h2>
+      <Filter value={filter} onChange={changeFilter} />
+      <ContactList contacts={visibleContacts} onDeleteContact={deleteContact} />
+    </div>
+  );
+};
+
+export { App };
+  
+  Notify.init({
+width: '450px',
+fontSize: '20px',
+position: 'center-top',
+closeButton: false,
+  });
+
+
+
+
+
+
+
+
+
+
+/*export class App extends React.Component {
   state = {
     contacts:[],
     filter: '',
@@ -86,70 +162,10 @@ export class App extends React.Component {
       </div>
     )}
 };
-
-
-Notify.init({
-width: '450px',
-fontSize: '20px',
-position: 'center-top',
-closeButton: false,
-});
-
-
-
-
-/*export class App extends React.Component {
-
-  state = {
-  contacts: [
-    {id: 'id-1', name: 'Rosie Simpson', number: '459-12-56'},
-    {id: 'id-2', name: 'Hermione Kline', number: '443-89-12'},
-    {id: 'id-3', name: 'Eden Clements', number: '645-17-79'},
-    {id: 'id-4', name: 'Annie Copeland', number: '227-91-26'},
-],
-  filter: ''
-}
-  
-  addContact = text => {
-   console.log(text)
- }
-  //відфільтровую контакти і залишаю ті ел. id яких не співпадають
-  deleteContact = (contactId) => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }))
-  };
-
-//this.props.onSubmit(this.state) ContactForm - дані при відправці ф-ми
-  formSubmitHandler = data => {
-  console.log(data)
-}
-   
-  render() {
-    const {contacts} = this.state
-    return (
-      <div className={css.container__phonebook}>
-        <h1>Phonebook</h1>
-        <ContactForm 
-          onSubmit={this.formSubmitHandler}
-        />
-        <h2>Contacts</h2>
-        <ContactList contacts={contacts}
-          onDeleteContact={this.deleteContact} />
-      </div>
-    )}
-}*/
-
-/*addContact = ({ name, number }) => {
-    const contact = {
-      id: nanoid(),
-      name,
-      number,
-    }
-   
-    this.setState(prevState => ({
-      contacts: [contact, ...prevState.contacts],
-    }))
-  };
 */
+
+
+
+
+
 
