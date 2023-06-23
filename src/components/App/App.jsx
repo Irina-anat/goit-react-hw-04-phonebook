@@ -12,6 +12,10 @@ const App = () => {
     const storedContacts = localStorage.getItem('contacts');
     return storedContacts ? JSON.parse(storedContacts) : [];
   });
+
+  /*або const [contacts, setContacts] = useState(
+  JSON.parse(localStorage.getItem('contacts')) || []);*/
+  
   const [filter, setFilter] = useState('');
 
   const addContact = ({ name, number }) => {
